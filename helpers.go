@@ -24,5 +24,7 @@ func GetPseodoRandomString() string {
 }
 
 func GetManifestKey(assetName string) string {
-	return fmt.Sprintf("%s/%s_index.m3u8", GetPseodoRandomString(), assetName)
+	pseudoString := GetPseodoRandomString()
+	manifestKey := fmt.Sprintf("%s/%s_index.m3u8", pseudoString, assetName)
+	return manifestKey
 }

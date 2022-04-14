@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
@@ -17,14 +16,14 @@ type AwsS3ClientAPI struct {
 
 func NewAwsS3ClientAPI(keyID, secret string) (*AwsS3ClientAPI, error) {
 	awsCfg := aws.NewConfig().WithRegion("eu-central-1") // it is not available in eu-central-1 yet
-	awsCfg.Credentials = credentials.NewCredentials(
-		&credentials.StaticProvider{
-			Value: credentials.Value{
-				AccessKeyID:     keyID,
-				SecretAccessKey: secret,
-			},
-		},
-	)
+	// awsCfg.Credentials = credentials.NewCredentials(
+	// 	&credentials.StaticProvider{
+	// 		Value: credentials.Value{
+	// 			AccessKeyID:     keyID,
+	// 			SecretAccessKey: secret,
+	// 		},
+	// 	},
+	// )
 	session, err := session.NewSession(awsCfg)
 	if err != nil {
 		return nil, err
