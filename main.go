@@ -9,14 +9,18 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
 type LogicConnection struct {
-	client      http.Client
-	apiKey      string
-	apiEndpoint string
-	bucketName  string
-	roleArn     string
+	client           http.Client
+	apiKey           string
+	apiEndpoint      string
+	bucketName       string
+	roleArn          string
+	bucketOutputName string
+	s3               *AwsS3ClientAPI
 }
 
 type ClipRequest struct {
@@ -29,17 +33,23 @@ type ClipRequest struct {
 	OriginEndpointID string    `json:"originEndpointId"`
 }
 
-func NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn string) *LogicConnection {
+func NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn, bucketOutputName string) (*LogicConnection, error) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
-	return &LogicConnection{
-		apiKey:      apiKey,
-		apiEndpoint: apiEndpoint,
-		bucketName:  bucketName,
-		roleArn:     roleArn,
-		client:      client,
+	s3, err := NewAwsS3ClientAPI("", "")
+	if err != nil {
+		return nil, err
 	}
+	return &LogicConnection{
+		apiKey:           apiKey,
+		apiEndpoint:      apiEndpoint,
+		bucketName:       bucketName,
+		roleArn:          roleArn,
+		bucketOutputName: bucketOutputName,
+		client:           client,
+		s3:               s3,
+	}, nil
 }
 
 func (lc *LogicConnection) Do(req *http.Request) (*http.Response, error) {
@@ -96,4 +106,8 @@ func (lc *LogicConnection) GetJobs() ([]*ClipRequest, error) {
 		return nil, err
 	}
 	return clipRequests, nil
+}
+
+func (lc *LogicConnection) GetClips() ([]*s3.Object, error) {
+	return lc.s3.ListObjects(lc.bucketOutputName)
 }

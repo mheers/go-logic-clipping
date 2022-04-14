@@ -30,11 +30,27 @@ func TestCreateClip(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestGetClips(t *testing.T) {
+	client := GetDemoConnection()
+	s, err := client.GetClips()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, s)
+}
+
+func TestGetDemoConnection(t *testing.T) {
+	client := GetDemoConnection()
+	assert.NotNil(t, client)
+}
+
 func GetDemoConnection() *LogicConnection {
 	apiKey := os.Getenv("API_KEY")
 	apiEndpoint := os.Getenv("API_ENDPOINT")
 	bucketName := os.Getenv("BUCKET_NAME")
 	roleArn := os.Getenv("ROLE_ARN")
-	client := NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn)
+	bucketOutputName := os.Getenv("BUCKET_OUTPUT_NAME")
+	client, err := NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn, bucketOutputName)
+	if err != nil {
+		panic(err)
+	}
 	return client
 }
