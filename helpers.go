@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/big"
 	"math/rand"
 	"time"
@@ -20,4 +21,8 @@ func GetPseodoRandomString() string {
 	s := rInt.Text(36)
 
 	return s
+}
+
+func GetManifestKey(assetName string) string {
+	return fmt.Sprintf("%s/%s_index.m3u8", GetPseodoRandomString(), assetName)
 }

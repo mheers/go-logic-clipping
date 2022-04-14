@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -13,6 +15,8 @@ type LogicConnection struct {
 	client      http.Client
 	apiKey      string
 	apiEndpoint string
+	bucketName  string
+	roleArn     string
 }
 
 type ClipRequest struct {
@@ -25,13 +29,15 @@ type ClipRequest struct {
 	OriginEndpointID string    `json:"originEndpointId"`
 }
 
-func NewLogicConnection(apiKey string, apiEndpoint string) *LogicConnection {
+func NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn string) *LogicConnection {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
 	return &LogicConnection{
 		apiKey:      apiKey,
 		apiEndpoint: apiEndpoint,
+		bucketName:  bucketName,
+		roleArn:     roleArn,
 		client:      client,
 	}
 }
@@ -51,6 +57,12 @@ func (lc *LogicConnection) Post(url string, body io.Reader) (resp *http.Response
 }
 
 func (lc *LogicConnection) CreateClip(clipRequest ClipRequest) error {
+	if clipRequest.BucketName == "" {
+		clipRequest.BucketName = lc.bucketName
+	}
+	if clipRequest.RoleArn == "" {
+		clipRequest.RoleArn = lc.roleArn
+	}
 	payload, err := json.Marshal(clipRequest)
 	if err != nil {
 		return err
@@ -73,7 +85,10 @@ func (lc *LogicConnection) GetJobs() ([]*ClipRequest, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("failed to get clip")
+		// reads the body and returns an error
+		payload, _ := ioutil.ReadAll(resp.Body)
+
+		return nil, fmt.Errorf("failed to get clip: %s", string(payload))
 	}
 	var clipRequests []*ClipRequest
 	err = json.NewDecoder(resp.Body).Decode(&clipRequests)
