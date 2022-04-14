@@ -10,9 +10,9 @@ import (
 
 func TestGetJobs(t *testing.T) {
 	client := GetDemoConnection()
-	s, err := client.GetJobs(client.channelIDs[0])
+	jobs, err := client.GetJobs(client.channelIDs[0])
 	assert.NoError(t, err)
-	assert.NotEmpty(t, s)
+	assert.NotEmpty(t, jobs)
 }
 
 func TestCreateClip(t *testing.T) {
@@ -32,9 +32,9 @@ func TestCreateClip(t *testing.T) {
 
 func TestGetClips(t *testing.T) {
 	client := GetDemoConnection()
-	s, err := client.GetClips()
+	clips, err := client.GetClips()
 	assert.NoError(t, err)
-	assert.NotEmpty(t, s)
+	assert.NotEmpty(t, clips)
 }
 
 func TestGetDemoConnection(t *testing.T) {
