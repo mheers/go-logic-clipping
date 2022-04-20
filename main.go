@@ -38,23 +38,25 @@ type ClipRequest struct {
 }
 
 type GetJobRequest struct {
-	ChannelID string `json:"Id"`
+	ChannelID string `json:"id"`
 }
 
 type Harvestjob struct {
-	Arn              string    `json:"Arn"`
-	Channelid        string    `json:"ChannelId"`
-	Createdat        time.Time `json:"CreatedAt"`
-	Endtime          time.Time `json:"EndTime"`
-	ID               string    `json:"Id"`
-	Originendpointid string    `json:"OriginEndpointId"`
-	S3Destination    struct {
-		Bucketname  string `json:"BucketName"`
-		Manifestkey string `json:"ManifestKey"`
-		Rolearn     string `json:"RoleArn"`
-	} `json:"S3Destination"`
-	Starttime time.Time `json:"StartTime"`
-	Status    string    `json:"Status"`
+	Arn              string        `json:"Arn"`
+	Channelid        string        `json:"ChannelId"`
+	Createdat        time.Time     `json:"CreatedAt"`
+	Endtime          time.Time     `json:"EndTime"`
+	ID               string        `json:"Id"`
+	Originendpointid string        `json:"OriginEndpointId"`
+	S3Destination    S3Destination `json:"S3Destination"`
+	Starttime        time.Time     `json:"StartTime"`
+	Status           string        `json:"Status"`
+}
+
+type S3Destination struct {
+	Bucketname  string `json:"BucketName"`
+	Manifestkey string `json:"ManifestKey"`
+	Rolearn     string `json:"RoleArn"`
 }
 
 type GetJobResponse struct {
