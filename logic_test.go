@@ -52,7 +52,7 @@ func GetDemoConnection() *LogicConnection {
 	roleArn := os.Getenv("ROLE_ARN")
 	originEndpointIDs := getOriginEndpointIDsFromEnv()
 	channelIDs := getChannelIDsFromEnv()
-	client, err := NewLogicConnection(apiKey, apiEndpoint, bucketInputName, roleArn, bucketOutputName)
+	client, err := NewLogicConnection(apiKey, apiEndpoint, bucketInputName, bucketOutputName, roleArn)
 	if err != nil {
 		panic(err)
 	}

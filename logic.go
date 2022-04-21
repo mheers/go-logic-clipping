@@ -64,7 +64,7 @@ type GetJobResponse struct {
 	} `json:"result"`
 }
 
-func NewLogicConnection(apiKey, apiEndpoint, bucketInputName, roleArn, bucketOutputName string) (*LogicConnection, error) {
+func NewLogicConnection(apiKey, apiEndpoint, bucketInputName, bucketOutputName, roleArn string) (*LogicConnection, error) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
