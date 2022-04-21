@@ -57,7 +57,7 @@ func TestGetClipByAssetName(t *testing.T) {
 
 	data, err := clip.GetData()
 	assert.NoError(t, err)
-	fmt.Printf("Data: %s\n", data)
+	assert.NotEmpty(t, data)
 }
 
 func TestGetDemoConnection(t *testing.T) {

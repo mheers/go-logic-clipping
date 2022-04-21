@@ -206,10 +206,12 @@ func (lc *LogicConnection) GetClipByAssetName(assetName string) (*Clip, error) {
 func (clip *Clip) GetData() ([]byte, error) {
 	buff := &aws.WriteAtBuffer{}
 
-	numBytes, err := clip.downloader.Download(buff, &s3.GetObjectInput{
+	input := &s3.GetObjectInput{
 		Bucket: aws.String(clip.bucket),
 		Key:    clip.Key,
-	})
+	}
+
+	numBytes, err := clip.downloader.Download(buff, input)
 	if err != nil {
 		return nil, err
 	}
