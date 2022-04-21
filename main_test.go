@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -13,15 +14,21 @@ func TestGetJobs(t *testing.T) {
 	jobs, err := client.GetJobs(client.channelIDs[0])
 	assert.NoError(t, err)
 	assert.NotEmpty(t, jobs)
+
+	for _, job := range jobs {
+		jobStartTime := job.Starttime.Format(time.RFC3339)
+		jobEndTime := job.Endtime.Format(time.RFC3339)
+		fmt.Printf("Job: %s, StartTime: %s, EndTime: %s, Status: %s\n", job.ID, jobStartTime, jobEndTime, job.Status)
+	}
 }
 
 func TestCreateClip(t *testing.T) {
 	client := GetDemoConnection()
-	assetName := "test_asset"
+	assetName := "request_1"
 	manifestKey := GetManifestKey(assetName)
 	clipRequest := ClipRequest{
-		StartTime:        time.Now().UTC().Add(time.Minute * -10),
-		EndTime:          time.Now().UTC().Add(time.Minute * -5),
+		StartTime:        time.Now().UTC().Add(time.Minute * -2),
+		EndTime:          time.Now().UTC().Add(time.Minute * -1),
 		ID:               assetName,
 		ManifestKey:      manifestKey,
 		OriginEndpointID: client.originEnpointIDs[0],
