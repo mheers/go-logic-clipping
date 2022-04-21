@@ -3,21 +3,25 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type LogicConnection struct {
 	client           http.Client
 	apiKey           string
 	apiEndpoint      string
-	bucketName       string
 	roleArn          string
+	bucketInputName  string
 	bucketOutputName string
 	s3               *AwsS3ClientAPI
 	originEnpointIDs []string
@@ -39,6 +43,12 @@ type ClipRequest struct {
 
 type GetJobRequest struct {
 	ChannelID string `json:"id"`
+}
+
+type Clip struct {
+	s3.Object
+	downloader *s3manager.Downloader
+	bucket     string
 }
 
 type Harvestjob struct {
@@ -66,7 +76,7 @@ type GetJobResponse struct {
 	} `json:"result"`
 }
 
-func NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn, bucketOutputName string) (*LogicConnection, error) {
+func NewLogicConnection(apiKey, apiEndpoint, bucketInputName, roleArn, bucketOutputName string) (*LogicConnection, error) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
@@ -77,8 +87,8 @@ func NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn, bucketOutputNa
 	return &LogicConnection{
 		apiKey:           apiKey,
 		apiEndpoint:      apiEndpoint,
-		bucketName:       bucketName,
 		roleArn:          roleArn,
+		bucketInputName:  bucketInputName,
 		bucketOutputName: bucketOutputName,
 		client:           client,
 		s3:               s3,
@@ -109,7 +119,7 @@ func (lc *LogicConnection) Post(url string, body io.Reader) (resp *http.Response
 
 func (lc *LogicConnection) CreateClip(clipRequest ClipRequest) error {
 	if clipRequest.BucketName == "" {
-		clipRequest.BucketName = lc.bucketName
+		clipRequest.BucketName = lc.bucketInputName
 	}
 	if clipRequest.RoleArn == "" {
 		clipRequest.RoleArn = lc.roleArn
@@ -159,6 +169,53 @@ func (lc *LogicConnection) GetJobs(channelID string) ([]*Harvestjob, error) {
 	return jobsResponse.Result.Harvestjobs, nil
 }
 
-func (lc *LogicConnection) GetClips() ([]*s3.Object, error) {
-	return lc.s3.ListObjects(lc.bucketOutputName)
+func (lc *LogicConnection) GetClips() ([]*Clip, error) {
+	clips := []*Clip{}
+
+	downloader := s3manager.NewDownloader(lc.s3.session)
+
+	s3Clips, err := lc.s3.ListObjects(lc.bucketOutputName)
+	if err != nil {
+		return nil, err
+	}
+	for _, s3Clip := range s3Clips {
+		clips = append(clips, &Clip{
+			Object:     *s3Clip,
+			downloader: downloader,
+			bucket:     lc.bucketOutputName,
+		})
+	}
+	return clips, nil
+}
+
+func (lc *LogicConnection) GetClipByAssetName(assetName string) (*Clip, error) {
+	allClips, err := lc.GetClips()
+	if err != nil {
+		return nil, err
+	}
+	for _, clip := range allClips {
+		// checks if clip starts with assetName
+		if strings.HasPrefix(*clip.Key, fmt.Sprintf("clips/%s", assetName)) {
+			return clip, nil
+		}
+	}
+
+	return nil, errors.New("clip not found")
+}
+
+func (clip *Clip) GetData() ([]byte, error) {
+	buff := &aws.WriteAtBuffer{}
+
+	numBytes, err := clip.downloader.Download(buff, &s3.GetObjectInput{
+		Bucket: aws.String(clip.bucket),
+		Key:    clip.Key,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if numBytes < 1 {
+		return nil, errors.New("zero bytes written to memory")
+	}
+	buffer := buff.Bytes()
+	return buffer, nil
 }

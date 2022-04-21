@@ -18,13 +18,15 @@ func TestGetJobs(t *testing.T) {
 	for _, job := range jobs {
 		jobStartTime := job.Starttime.Format(time.RFC3339)
 		jobEndTime := job.Endtime.Format(time.RFC3339)
-		fmt.Printf("Job: %s, StartTime: %s, EndTime: %s, Status: %s\n", job.ID, jobStartTime, jobEndTime, job.Status)
+		jobCreatedTime := job.Createdat.Format(time.RFC3339)
+		jobBucket := job.S3Destination.Bucketname
+		fmt.Printf("Job: %s, Created: %s, StartTime: %s, EndTime: %s, Bucket: %s, Status: %s\n", job.ID, jobCreatedTime, jobStartTime, jobEndTime, jobBucket, job.Status)
 	}
 }
 
 func TestCreateClip(t *testing.T) {
 	client := GetDemoConnection()
-	assetName := "request_1"
+	assetName := "request_4"
 	manifestKey := GetManifestKey(assetName)
 	clipRequest := ClipRequest{
 		StartTime:        time.Now().UTC().Add(time.Minute * -2),
@@ -42,6 +44,20 @@ func TestGetClips(t *testing.T) {
 	clips, err := client.GetClips()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, clips)
+	for _, clip := range clips {
+		fmt.Printf("Key: %s\n", *clip.Key)
+	}
+}
+
+func TestGetClipByAssetName(t *testing.T) {
+	client := GetDemoConnection()
+	clip, err := client.GetClipByAssetName("request_4")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, clip)
+
+	data, err := clip.GetData()
+	assert.NoError(t, err)
+	fmt.Printf("Data: %s\n", data)
 }
 
 func TestGetDemoConnection(t *testing.T) {
@@ -52,12 +68,12 @@ func TestGetDemoConnection(t *testing.T) {
 func GetDemoConnection() *LogicConnection {
 	apiKey := os.Getenv("API_KEY")
 	apiEndpoint := os.Getenv("API_ENDPOINT")
-	bucketName := os.Getenv("BUCKET_NAME")
-	roleArn := os.Getenv("ROLE_ARN")
+	bucketInputName := os.Getenv("BUCKET_INPUT_NAME")
 	bucketOutputName := os.Getenv("BUCKET_OUTPUT_NAME")
+	roleArn := os.Getenv("ROLE_ARN")
 	originEndpointIDs := getOriginEndpointIDsFromEnv()
 	channelIDs := getChannelIDsFromEnv()
-	client, err := NewLogicConnection(apiKey, apiEndpoint, bucketName, roleArn, bucketOutputName)
+	client, err := NewLogicConnection(apiKey, apiEndpoint, bucketInputName, roleArn, bucketOutputName)
 	if err != nil {
 		panic(err)
 	}

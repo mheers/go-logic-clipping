@@ -11,7 +11,8 @@ import (
 
 // AwsS3ClientAPI describes the AwsS3ClientAPI
 type AwsS3ClientAPI struct {
-	s3 *s3.S3
+	s3      *s3.S3
+	session *session.Session
 }
 
 func NewAwsS3ClientAPI(keyID, secret string) (*AwsS3ClientAPI, error) {
@@ -30,7 +31,8 @@ func NewAwsS3ClientAPI(keyID, secret string) (*AwsS3ClientAPI, error) {
 	}
 	s3 := s3.New(session)
 	return &AwsS3ClientAPI{
-		s3: s3,
+		s3:      s3,
+		session: session,
 	}, nil
 }
 
