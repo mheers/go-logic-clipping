@@ -1,7 +1,6 @@
-package main
+package logicclipping
 
 import (
-	"bytes"
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -47,25 +46,6 @@ func (api *AwsS3ClientAPI) GetObject(bucketName, key string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 	return ioutil.ReadAll(resp.Body)
-}
-
-func (api *AwsS3ClientAPI) PutObject(bucketName, key string, data []byte) error {
-	input := &s3.PutObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(key),
-		Body:   bytes.NewReader(data),
-	}
-	_, err := api.s3.PutObject(input)
-	return err
-}
-
-func (api *AwsS3ClientAPI) DeleteObject(bucketName, key string) error {
-	input := &s3.DeleteObjectInput{
-		Bucket: aws.String(bucketName),
-		Key:    aws.String(key),
-	}
-	_, err := api.s3.DeleteObject(input)
-	return err
 }
 
 func (api *AwsS3ClientAPI) ListObjects(bucketName string) ([]*s3.Object, error) {

@@ -1,4 +1,4 @@
-package main
+package logicclipping
 
 import (
 	"fmt"
@@ -37,27 +37,6 @@ func TestCreateClip(t *testing.T) {
 	}
 	err := client.CreateClip(clipRequest)
 	assert.NoError(t, err)
-}
-
-func TestGetClips(t *testing.T) {
-	client := GetDemoConnection()
-	clips, err := client.GetClips()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, clips)
-	for _, clip := range clips {
-		fmt.Printf("Key: %s\n", *clip.Key)
-	}
-}
-
-func TestGetClipByAssetName(t *testing.T) {
-	client := GetDemoConnection()
-	clip, err := client.GetClipByAssetName("request_4")
-	assert.NoError(t, err)
-	assert.NotEmpty(t, clip)
-
-	data, err := clip.GetData()
-	assert.NoError(t, err)
-	assert.NotEmpty(t, data)
 }
 
 func TestGetDemoConnection(t *testing.T) {

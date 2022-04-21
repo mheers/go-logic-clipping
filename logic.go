@@ -1,19 +1,13 @@
-package main
+package logicclipping
 
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"time"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 type LogicConnection struct {
@@ -43,12 +37,6 @@ type ClipRequest struct {
 
 type GetJobRequest struct {
 	ChannelID string `json:"id"`
-}
-
-type Clip struct {
-	s3.Object
-	downloader *s3manager.Downloader
-	bucket     string
 }
 
 type Harvestjob struct {
@@ -167,57 +155,4 @@ func (lc *LogicConnection) GetJobs(channelID string) ([]*Harvestjob, error) {
 		return nil, err
 	}
 	return jobsResponse.Result.Harvestjobs, nil
-}
-
-func (lc *LogicConnection) GetClips() ([]*Clip, error) {
-	clips := []*Clip{}
-
-	downloader := s3manager.NewDownloader(lc.s3.session)
-
-	s3Clips, err := lc.s3.ListObjects(lc.bucketOutputName)
-	if err != nil {
-		return nil, err
-	}
-	for _, s3Clip := range s3Clips {
-		clips = append(clips, &Clip{
-			Object:     *s3Clip,
-			downloader: downloader,
-			bucket:     lc.bucketOutputName,
-		})
-	}
-	return clips, nil
-}
-
-func (lc *LogicConnection) GetClipByAssetName(assetName string) (*Clip, error) {
-	allClips, err := lc.GetClips()
-	if err != nil {
-		return nil, err
-	}
-	for _, clip := range allClips {
-		// checks if clip starts with assetName
-		if strings.HasPrefix(*clip.Key, fmt.Sprintf("clips/%s", assetName)) {
-			return clip, nil
-		}
-	}
-
-	return nil, errors.New("clip not found")
-}
-
-func (clip *Clip) GetData() ([]byte, error) {
-	buff := &aws.WriteAtBuffer{}
-
-	input := &s3.GetObjectInput{
-		Bucket: aws.String(clip.bucket),
-		Key:    clip.Key,
-	}
-
-	numBytes, err := clip.downloader.Download(buff, input)
-	if err != nil {
-		return nil, err
-	}
-	if numBytes < 1 {
-		return nil, errors.New("zero bytes written to memory")
-	}
-	buffer := buff.Bytes()
-	return buffer, nil
 }
