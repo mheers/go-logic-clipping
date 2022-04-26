@@ -20,7 +20,9 @@ func TestGetClips(t *testing.T) {
 
 func TestGetClipByAssetName(t *testing.T) {
 	client := GetDemoConnection()
-	clip, err := client.GetClipByAssetName("request_4")
+	// assetName := "request_4"
+	assetName := "request_multi_8_1"
+	clip, err := client.GetClipByAssetName(assetName)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, clip)
 
@@ -28,6 +30,6 @@ func TestGetClipByAssetName(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, data)
 
-	err = ioutil.WriteFile("/tmp/request_4.mp4", data, 0644)
+	err = ioutil.WriteFile(fmt.Sprintf("/tmp/%s.mp4", assetName), data, 0644)
 	assert.NoError(t, err)
 }

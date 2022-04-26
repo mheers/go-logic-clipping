@@ -1,4 +1,4 @@
-module github.com/mheers/logic-clipping
+module github.com/mheers/go-logic-clipping
 
 go 1.18
 
