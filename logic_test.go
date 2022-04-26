@@ -11,7 +11,7 @@ import (
 
 func TestGetJobs(t *testing.T) {
 	client := GetDemoConnection()
-	jobs, err := client.GetJobs(client.channelIDs[0])
+	jobs, err := client.GetJobs(client.channelIDs)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, jobs)
 
@@ -26,7 +26,7 @@ func TestGetJobs(t *testing.T) {
 
 func TestCreateClip(t *testing.T) {
 	client := GetDemoConnection()
-	assetName := "request_4"
+	assetName := "request_7"
 	manifestKey := GetManifestKey(assetName)
 	clipRequest := ClipRequest{
 		StartTime:        time.Now().UTC().Add(time.Minute * -2),
@@ -35,8 +35,24 @@ func TestCreateClip(t *testing.T) {
 		ManifestKey:      manifestKey,
 		OriginEndpointID: client.originEnpointIDs[0],
 	}
-	err := client.CreateClip(clipRequest)
+	clipResponse, err := client.CreateClip(clipRequest)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, clipResponse.Result.Arn)
+}
+
+func TestCreateMultiClip(t *testing.T) {
+	client := GetDemoConnection()
+	assetName := "request_multi_7"
+	multiClipRequest := MultiClipRequest{
+		StartTime:         time.Now().UTC().Add(time.Minute * -2),
+		EndTime:           time.Now().UTC().Add(time.Minute * -1),
+		AssetName:         assetName,
+		OriginEndpointIDs: []string{client.originEnpointIDs[0], client.originEnpointIDs[1]},
+	}
+	clipResponses, err := client.CreateMultiClip(multiClipRequest)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, clipResponses)
+	assert.Len(t, clipResponses, 2)
 }
 
 func TestGetDemoConnection(t *testing.T) {

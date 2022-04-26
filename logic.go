@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -22,6 +23,37 @@ type LogicConnection struct {
 	channelIDs       []string
 }
 
+type MultiClipRequest struct {
+	AssetName string
+	// StartTime in UTC
+	StartTime time.Time `json:"startTime"`
+
+	// EndTime in UTC
+	EndTime           time.Time `json:"endTime"`
+	BucketName        string    `json:"bucketName"`
+	RoleArn           string    `json:"roleArn"`
+	OriginEndpointIDs []string  `json:"originEndpointIds"`
+}
+
+func (mcr *MultiClipRequest) ToClipRequests() []ClipRequest {
+	var requests []ClipRequest
+	originEndpointIDs := mcr.OriginEndpointIDs
+	sort.Strings(originEndpointIDs)
+	for x, id := range originEndpointIDs {
+		assetName := fmt.Sprintf("%s_%d", mcr.AssetName, x)
+		requests = append(requests, ClipRequest{
+			ID:               assetName,
+			StartTime:        mcr.StartTime,
+			EndTime:          mcr.EndTime,
+			BucketName:       mcr.BucketName,
+			RoleArn:          mcr.RoleArn,
+			ManifestKey:      GetManifestKey(assetName),
+			OriginEndpointID: id,
+		})
+	}
+	return requests
+}
+
 type ClipRequest struct {
 	// StartTime in UTC
 	StartTime time.Time `json:"startTime"`
@@ -33,6 +65,16 @@ type ClipRequest struct {
 	ManifestKey      string    `json:"manifestKey"`
 	RoleArn          string    `json:"roleArn"`
 	OriginEndpointID string    `json:"originEndpointId"`
+}
+
+type CreateClipResponse struct {
+	Result struct {
+		Harvestjob
+	} `json:"result"`
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 type GetJobRequest struct {
@@ -105,7 +147,7 @@ func (lc *LogicConnection) Post(url string, body io.Reader) (resp *http.Response
 	return lc.Do(req)
 }
 
-func (lc *LogicConnection) CreateClip(clipRequest ClipRequest) error {
+func (lc *LogicConnection) CreateClip(clipRequest ClipRequest) (*CreateClipResponse, error) {
 	if clipRequest.BucketName == "" {
 		clipRequest.BucketName = lc.bucketInputName
 	}
@@ -114,21 +156,63 @@ func (lc *LogicConnection) CreateClip(clipRequest ClipRequest) error {
 	}
 	payload, err := json.Marshal(clipRequest)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	resp, err := lc.Post(lc.apiEndpoint+"/mediapackage/harvestjob/start", bytes.NewBuffer(payload))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		payload, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("failed to create clip: %s", string(payload))
+
+	// response from json to CreateClipResponse
+	var createClipResponse CreateClipResponse
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	err = json.Unmarshal(respBody, &createClipResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		var errorResponse = ErrorResponse{}
+		err = json.Unmarshal(respBody, &errorResponse)
+		if err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("failed to create clip: %s", errorResponse.Error)
+	}
+
+	return &createClipResponse, nil
 }
 
-func (lc *LogicConnection) GetJobs(channelID string) ([]*Harvestjob, error) {
+func (lc *LogicConnection) CreateMultiClip(multiClipRequest MultiClipRequest) ([]*CreateClipResponse, error) {
+	clipRequests := multiClipRequest.ToClipRequests()
+	clipResponses := []*CreateClipResponse{}
+	for _, cr := range clipRequests {
+		clipResponse, err := lc.CreateClip(cr)
+		if err != nil {
+			return nil, err
+		}
+		clipResponses = append(clipResponses, clipResponse)
+	}
+	return clipResponses, nil
+}
+
+func (lc *LogicConnection) GetJobs(channelIDs []string) ([]*Harvestjob, error) {
+	var jobs []*Harvestjob
+	for _, id := range channelIDs {
+		resp, err := lc.GetJobsForChannel(id)
+		if err != nil {
+			return nil, err
+		}
+		jobs = append(jobs, resp...)
+	}
+	return jobs, nil
+}
+
+func (lc *LogicConnection) GetJobsForChannel(channelID string) ([]*Harvestjob, error) {
 	req := GetJobRequest{
 		ChannelID: channelID,
 	}
