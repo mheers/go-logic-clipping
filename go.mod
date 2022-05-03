@@ -3,7 +3,7 @@ module github.com/mheers/go-logic-clipping
 go 1.18
 
 require (
-	github.com/aws/aws-sdk-go v1.43.43
+	github.com/aws/aws-sdk-go v1.44.5
 	github.com/stretchr/testify v1.7.1
 )
 
