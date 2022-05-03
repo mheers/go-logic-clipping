@@ -208,6 +208,20 @@ func (lc *LogicConnection) CreateMultiClip(multiClipRequest MultiClipRequest) ([
 	return clipResponses, nil
 }
 
+func (lc *LogicConnection) CreateMultiClipDelayedUntilEndTime(multiClipRequest MultiClipRequest) ([]*CreateClipResponse, error) {
+	// check if endtime of multi clip is in the future
+	if multiClipRequest.EndTime.After(time.Now()) {
+		// wait the time until the endtime
+		// time.Sleep(multiClipRequest.EndTime.Sub(time.Now()))
+		time.Sleep(time.Until(multiClipRequest.EndTime))
+
+		// wait 2sec more
+		time.Sleep(time.Second * 2)
+	}
+	// create clip requests
+	return lc.CreateMultiClip(multiClipRequest)
+}
+
 func (lc *LogicConnection) GetJobs(channelIDs []string) ([]*Harvestjob, error) {
 	var jobs []*Harvestjob
 	for _, id := range channelIDs {
