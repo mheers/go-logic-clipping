@@ -3,6 +3,8 @@ package logicclipping
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -16,6 +18,24 @@ type Clip struct {
 
 func (clip *Clip) GetData() ([]byte, error) {
 	return clip.s3Api.GetObject(clip.bucket, *clip.Key)
+}
+
+func (clip *Clip) Download(dir string) error {
+	err := os.MkdirAll(dir, 0777)
+	if err != nil {
+		return err
+	}
+	data, err := clip.GetData()
+	if err != nil {
+		return err
+	}
+	file := *clip.Key
+	_, file, _ = strings.Cut(file, "/")
+	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", dir, file), data, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (lc *LogicConnection) GetClips() ([]*Clip, error) {

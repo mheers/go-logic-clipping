@@ -39,3 +39,15 @@ func TestGetClipByAssetName(t *testing.T) {
 	err = ioutil.WriteFile(fmt.Sprintf("%s/%s.mp4", dir, assetName), data, 0644)
 	assert.NoError(t, err)
 }
+
+func TestDownloadClip(t *testing.T) {
+	client := GetDemoConnection()
+	// assetName := "request_4"
+	assetName := "request_multi_8"
+	clip, err := client.GetClipByAssetName(assetName)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, clip)
+
+	err = clip.Download("/tmp/clips/test")
+	assert.NoError(t, err)
+}
