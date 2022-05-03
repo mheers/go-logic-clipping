@@ -11,7 +11,7 @@ import (
 
 func TestGetJobs(t *testing.T) {
 	client := GetDemoConnection()
-	jobs, err := client.GetJobs(client.channelIDs)
+	jobs, err := client.GetJobs(client.GetChannelIDs())
 	assert.NoError(t, err)
 	assert.NotEmpty(t, jobs)
 
@@ -42,17 +42,24 @@ func TestCreateClip(t *testing.T) {
 
 func TestCreateMultiClip(t *testing.T) {
 	client := GetDemoConnection()
-	assetName := "request_multi_8"
+	assetName := "request_multi_9"
 	multiClipRequest := MultiClipRequest{
-		StartTime:         time.Now().UTC().Add(time.Minute * -2),
-		EndTime:           time.Now().UTC().Add(time.Minute * -1),
-		AssetName:         assetName,
-		OriginEndpointIDs: []string{client.originEnpointIDs[0], client.originEnpointIDs[1]},
+		StartTime: time.Now().UTC().Add(time.Minute * -2),
+		EndTime:   time.Now().UTC().Add(time.Minute * -1),
+		AssetName: assetName,
+		OriginEndpointIDs: []string{
+			client.originEnpointIDs[0],
+			client.originEnpointIDs[1],
+			client.originEnpointIDs[2],
+			client.originEnpointIDs[3],
+			client.originEnpointIDs[4],
+			client.originEnpointIDs[5],
+		},
 	}
 	clipResponses, err := client.CreateMultiClip(multiClipRequest)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, clipResponses)
-	assert.Len(t, clipResponses, 2)
+	assert.Len(t, clipResponses, 6)
 }
 
 func TestGetDemoConnection(t *testing.T) {
@@ -81,12 +88,18 @@ func getOriginEndpointIDsFromEnv() []string {
 	id01 := os.Getenv("ORIGIN_ENDPOINT_ID_01")
 	id02 := os.Getenv("ORIGIN_ENDPOINT_ID_02")
 	id03 := os.Getenv("ORIGIN_ENDPOINT_ID_03")
-	return []string{id01, id02, id03}
+	id04 := os.Getenv("ORIGIN_ENDPOINT_ID_04")
+	id05 := os.Getenv("ORIGIN_ENDPOINT_ID_05")
+	id06 := os.Getenv("ORIGIN_ENDPOINT_ID_06")
+	return []string{id01, id02, id03, id04, id05, id06}
 }
 
 func getChannelIDsFromEnv() []string {
 	id01 := os.Getenv("CHANNEL_ID_01")
 	id02 := os.Getenv("CHANNEL_ID_02")
 	id03 := os.Getenv("CHANNEL_ID_03")
-	return []string{id01, id02, id03}
+	id04 := os.Getenv("CHANNEL_ID_04")
+	id05 := os.Getenv("CHANNEL_ID_05")
+	id06 := os.Getenv("CHANNEL_ID_06")
+	return []string{id01, id02, id03, id04, id05, id06}
 }

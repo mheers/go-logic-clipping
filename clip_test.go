@@ -3,9 +3,11 @@ package logicclipping
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetClips(t *testing.T) {
@@ -21,7 +23,7 @@ func TestGetClips(t *testing.T) {
 func TestGetClipByAssetName(t *testing.T) {
 	client := GetDemoConnection()
 	// assetName := "request_4"
-	assetName := "request_multi_8_1"
+	assetName := "request_multi_9_6"
 	clip, err := client.GetClipByAssetName(assetName)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, clip)
@@ -30,6 +32,10 @@ func TestGetClipByAssetName(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, data)
 
-	err = ioutil.WriteFile(fmt.Sprintf("/tmp/%s.mp4", assetName), data, 0644)
+	dir := "/tmp/clips"
+	err = os.MkdirAll(dir, os.ModePerm)
+	require.NoError(t, err)
+
+	err = ioutil.WriteFile(fmt.Sprintf("%s/%s.mp4", dir, assetName), data, 0644)
 	assert.NoError(t, err)
 }

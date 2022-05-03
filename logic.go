@@ -129,8 +129,16 @@ func (lc *LogicConnection) SetOriginEndpointIDs(ids []string) {
 	lc.originEnpointIDs = ids
 }
 
+func (lc *LogicConnection) GetOriginEndpointIDs() []string {
+	return lc.originEnpointIDs
+}
+
 func (lc *LogicConnection) SetChannelIDs(ids []string) {
 	lc.channelIDs = ids
+}
+
+func (lc *LogicConnection) GetChannelIDs() []string {
+	return lc.channelIDs
 }
 
 func (lc *LogicConnection) Do(req *http.Request) (*http.Response, error) {
