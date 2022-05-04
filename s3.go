@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
@@ -24,6 +25,7 @@ func NewAwsS3ClientAPI(keyID, secret string) (*AwsS3ClientAPI, error) {
 	// 		},
 	// 	},
 	// )
+	awsCfg.Credentials = credentials.AnonymousCredentials
 	session, err := session.NewSession(awsCfg)
 	if err != nil {
 		return nil, err
