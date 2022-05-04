@@ -23,7 +23,18 @@ func (clip *Clip) GetData() ([]byte, error) {
 }
 
 func (clip *Clip) Download(dir string) error {
-	err := os.MkdirAll(dir, 0777)
+	file := *clip.Key
+	_, file, _ = strings.Cut(file, "/")
+	localPath := fmt.Sprintf("%s/%s", dir, file)
+
+	// check if file exists
+	_, err := os.Stat(localPath)
+	if err == nil {
+		clip.LocalPath = localPath
+		return nil
+	}
+
+	err = os.MkdirAll(dir, 0777)
 	if err != nil {
 		return err
 	}
@@ -31,9 +42,7 @@ func (clip *Clip) Download(dir string) error {
 	if err != nil {
 		return err
 	}
-	file := *clip.Key
-	_, file, _ = strings.Cut(file, "/")
-	localPath := fmt.Sprintf("%s/%s", dir, file)
+
 	err = ioutil.WriteFile(localPath, data, 0644)
 	if err != nil {
 		return err
@@ -65,7 +74,14 @@ func (clip *Clip) Transcode(format string) error {
 	}
 	input := clip.LocalPath
 	output := fmt.Sprintf("%s.%s", input, format)
-	err := transcode(input, output)
+
+	// check if file exists
+	_, err := os.Stat(output)
+	if err == nil {
+		return nil
+	}
+
+	err = transcode(input, output)
 	if err != nil {
 		return err
 	}
@@ -88,6 +104,9 @@ func (lc *LogicConnection) GetClips() ([]*Clip, error) {
 		return nil, err
 	}
 	for _, s3Clip := range s3Clips {
+		if !strings.HasSuffix(*s3Clip.Key, ".ts") {
+			continue
+		}
 		clips = append(clips, &Clip{
 			Object: *s3Clip,
 			s3Api:  lc.s3,
@@ -115,7 +134,7 @@ func (lc *LogicConnection) GetClipByAssetName(assetName string) (*Clip, error) {
 func transcode(input, output string) error {
 	cmd := execute.ExecTask{
 		Command:     "ffmpeg",
-		Args:        []string{"-i", input, "-c", "copy", output},
+		Args:        []string{"-i", input, "-c", "copy", "-y", output},
 		StreamStdio: false,
 	}
 
