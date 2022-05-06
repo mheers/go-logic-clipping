@@ -24,7 +24,7 @@ func (clip *Clip) GetData() ([]byte, error) {
 
 func (clip *Clip) Download(dir string) error {
 	file := *clip.Key
-	_, file, _ = strings.Cut(file, "/")
+	_, file, _ = strings.Cut(file, "/") // key is usually "clips/<fileName>" so we cut the first part
 	localPath := fmt.Sprintf("%s/%s", dir, file)
 
 	// check if file exists

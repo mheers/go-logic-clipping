@@ -195,7 +195,7 @@ func (lc *LogicConnection) CreateClip(clipRequest ClipRequest) (*CreateClipRespo
 	return &createClipResponse, nil
 }
 
-func (lc *LogicConnection) CreateMultiClip(multiClipRequest MultiClipRequest) ([]*CreateClipResponse, error) {
+func (lc *LogicConnection) CreateMultiClip(multiClipRequest *MultiClipRequest) ([]*CreateClipResponse, error) {
 	clipRequests := multiClipRequest.ToClipRequests()
 	clipResponses := []*CreateClipResponse{}
 	for _, cr := range clipRequests {
@@ -208,7 +208,7 @@ func (lc *LogicConnection) CreateMultiClip(multiClipRequest MultiClipRequest) ([
 	return clipResponses, nil
 }
 
-func (lc *LogicConnection) CreateMultiClipDelayedUntilEndTime(multiClipRequest MultiClipRequest) ([]*CreateClipResponse, error) {
+func (lc *LogicConnection) CreateMultiClipDelayedUntilEndTime(multiClipRequest *MultiClipRequest) ([]*CreateClipResponse, error) {
 	// check if endtime of multi clip is in the future
 	if multiClipRequest.EndTime.After(time.Now()) {
 		// wait the time until the endtime

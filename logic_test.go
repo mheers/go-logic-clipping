@@ -43,7 +43,7 @@ func TestCreateClip(t *testing.T) {
 func TestCreateMultiClip(t *testing.T) {
 	client := GetDemoConnection()
 	assetName := "request_multi_9"
-	multiClipRequest := MultiClipRequest{
+	multiClipRequest := &MultiClipRequest{
 		StartTime: time.Now().UTC().Add(time.Minute * -2),
 		EndTime:   time.Now().UTC().Add(time.Minute * -1),
 		AssetName: assetName,
