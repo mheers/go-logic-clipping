@@ -18,14 +18,18 @@ type Clip struct {
 	LocalPath string
 }
 
-func (clip *Clip) GetData() ([]byte, error) {
+const prefix = "clips/"
+
+func (clip *Clip) Data() ([]byte, error) {
 	return clip.s3Api.GetObject(clip.bucket, *clip.Key)
 }
 
+func (clip *Clip) FileName() string {
+	return strings.Replace(*clip.Key, prefix, "", -1)
+}
+
 func (clip *Clip) Download(dir string) error {
-	file := *clip.Key
-	_, file, _ = strings.Cut(file, "/") // key is usually "clips/<fileName>" so we cut the first part
-	localPath := fmt.Sprintf("%s/%s", dir, file)
+	localPath := fmt.Sprintf("%s/%s", dir, clip.FileName())
 
 	// check if file exists
 	_, err := os.Stat(localPath)
@@ -34,15 +38,19 @@ func (clip *Clip) Download(dir string) error {
 		return nil
 	}
 
+	// create dir if it doesn't exist
 	err = os.MkdirAll(dir, 0777)
 	if err != nil {
 		return err
 	}
-	data, err := clip.GetData()
+
+	// download file
+	data, err := clip.Data()
 	if err != nil {
 		return err
 	}
 
+	// write file
 	err = ioutil.WriteFile(localPath, data, 0644)
 	if err != nil {
 		return err
@@ -105,6 +113,9 @@ func (lc *LogicConnection) GetClips() ([]*Clip, error) {
 	}
 	for _, s3Clip := range s3Clips {
 		if !strings.HasSuffix(*s3Clip.Key, ".ts") {
+			continue
+		}
+		if !strings.HasPrefix(*s3Clip.Key, prefix) {
 			continue
 		}
 		clips = append(clips, &Clip{

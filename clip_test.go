@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +30,7 @@ func TestGetClipByAssetName(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, clip)
 
-	data, err := clip.GetData()
+	data, err := clip.Data()
 	assert.NoError(t, err)
 	assert.NotEmpty(t, data)
 
@@ -50,4 +52,13 @@ func TestDownloadClip(t *testing.T) {
 
 	err = clip.Download("/tmp/clips/test")
 	assert.NoError(t, err)
+}
+
+func TestFileName(t *testing.T) {
+	clip := &Clip{
+		Object: s3.Object{
+			Key: aws.String("clips/someKey"),
+		},
+	}
+	assert.Equal(t, "someKey", clip.FileName())
 }
