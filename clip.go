@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	execute "github.com/alexellis/go-execute/pkg/v1"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
@@ -94,6 +95,8 @@ func (clip *Clip) Transcode(format string) error {
 		return err
 	}
 	clip.LocalPath = output
+
+	clip.Key = aws.String(strings.ReplaceAll(fmt.Sprintf("%s/%s.%s", prefix, *clip.Key, format), "//", "/"))
 
 	// // TODO: Cleanup ?
 	// err = os.Remove(input)

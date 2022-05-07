@@ -62,3 +62,19 @@ func TestFileName(t *testing.T) {
 	}
 	assert.Equal(t, "someKey", clip.FileName())
 }
+
+func TestTranscodedFileName(t *testing.T) {
+	client := GetDemoConnection()
+	assetName := "request_multi_8"
+
+	clip, err := client.GetClipByAssetName(assetName)
+	require.NoError(t, err)
+
+	tempDir := t.TempDir()
+	err = clip.Download(tempDir)
+	assert.NoError(t, err)
+
+	err = clip.Transcode("mp4")
+	require.NoError(t, err)
+	assert.Equal(t, "request_multi_8_0_2022-04-26T11-49-45.689983+00-00.ts.mp4", clip.FileName())
+}

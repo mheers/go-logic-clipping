@@ -91,7 +91,8 @@ func getOriginEndpointIDsFromEnv() []string {
 	id04 := os.Getenv("ORIGIN_ENDPOINT_ID_04")
 	id05 := os.Getenv("ORIGIN_ENDPOINT_ID_05")
 	id06 := os.Getenv("ORIGIN_ENDPOINT_ID_06")
-	return []string{id01, id02, id03, id04, id05, id06}
+	id07 := os.Getenv("ORIGIN_ENDPOINT_ID_07")
+	return []string{id01, id02, id03, id04, id05, id06, id07}
 }
 
 func getChannelIDsFromEnv() []string {
@@ -101,5 +102,6 @@ func getChannelIDsFromEnv() []string {
 	id04 := os.Getenv("CHANNEL_ID_04")
 	id05 := os.Getenv("CHANNEL_ID_05")
 	id06 := os.Getenv("CHANNEL_ID_06")
-	return []string{id01, id02, id03, id04, id05, id06}
+	id07 := os.Getenv("CHANNEL_ID_07")
+	return []string{id01, id02, id03, id04, id05, id06, id07}
 }
